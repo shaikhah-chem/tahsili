@@ -151,7 +151,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   </div>
 </div></header>
 <main class="wrap" id="app" dir="rtl"></main>
-<footer dir="rtl">مفتاح الألوان: <span class="tag T">تحصيلي</span> من كتاب التحصيلي · <span class="tag D">تدريب</span> سؤال مصمم بالنمط نفسه</footer>
+<footer dir="rtl">مفتاح الألوان: <span class="tag T">تحصيلي</span> من تجميعات التحصيلي · <span class="tag D">تدريب</span> سؤال مصمم بالنمط نفسه</footer>
 <canvas id="fx"></canvas>
 <div class="toast" id="toast" dir="rtl"></div>
 
@@ -333,7 +333,7 @@ function home(){
     <div style="min-width:0"><h2>تحدّي الفصول التي درستها</h2>
       <p>اختر الفصول التي أنهيتها، وستظهر لك 20 سؤالًا عشوائيًا منها فقط.</p>
       <div class="chips" style="margin-top:8px">${DATA.chapters.map(c=>`<button class="chipbtn selch" data-s="${c.num}" aria-pressed="${sel.includes(c.num)}" style="${sel.includes(c.num)?'background:var(--petrol);color:#fff;border-color:var(--petrol)':''}">الفصل ${c.num}</button>`).join('')}</div>
-      <div class="stats"><span><b>${t.total}</b> سؤالًا في المقرر</span><span><b>${t.tcount}</b> من كتاب التحصيلي</span></div>
+      <div class="stats"><span><b>${t.total}</b> سؤالًا في المقرر</span><span><b>${t.tcount}</b> من تجميعات التحصيلي</span></div>
       ${best['u'+sel.join('-')]!=null?`<div class="best">أفضل نتيجة في ${R(selName(sel))}: ${best['u'+sel.join('-')]}%</div>`:''}</div>
     <button class="btn" id="goAll">ابدأ التحدي</button>
   </section>
@@ -350,7 +350,7 @@ function home(){
       ${best['c'+c.num]!=null?`<div class="best">أفضل نتيجة: ${best['c'+c.num]}%</div>`:''}
       <button class="btn alt go" data-c="${c.num}">اختبر الفصل كاملًا</button></article>`}).join('')}
     <article class="card"><div class="hd"><span class="num" style="background:var(--coral)">T</span><div><h3>أسئلة التحصيلي فقط</h3>
-      <div class="meta">30 سؤالًا عشوائيًا من كتاب التحصيلي، من الفصول التي اخترتها في الأعلى</div></div></div>
+      <div class="meta">30 سؤالًا عشوائيًا من تجميعات التحصيلي، من الفصول التي اخترتها في الأعلى</div></div></div>
       ${best.tah!=null?`<div class="best">أفضل نتيجة: ${best.tah}%</div>`:''}
       <button class="btn go" id="goT">ابدأ</button></article></div>`;
   const inSel=q=>sel.includes(q.chapter.num);
