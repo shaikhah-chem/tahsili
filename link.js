@@ -16,7 +16,9 @@
     return loading;
   }
 
-  function cls(){ return store.get("cls", ""); }
+  function cls(){ try { return localStorage.getItem("tahsili_cls") || store.get("cls", ""); } catch(e){ return store.get("cls", ""); } }
+  function setCls(c){ store.set("cls", c); try { localStorage.setItem("tahsili_cls", c); } catch(e){} }
+  function titleOf(k){ return /^l\d+/.test(k) ? "الدرس " + k.slice(1) : /^t/.test(k) ? "أسئلة التحصيلي" : k; }
   function askClass(after){
     if (document.getElementById("clsBox")) return;
     var box = document.createElement("div");
@@ -28,17 +30,19 @@
     app.insertAdjacentElement("afterbegin", box);
     box.onclick = function(e){
       var b = e.target.closest("button[data-c]"); if (!b) return;
-      store.set("cls", b.getAttribute("data-c")); box.remove();
+      setCls(b.getAttribute("data-c")); box.remove();
       if (b.getAttribute("data-c") !== "other" && !prof().name) askName(after); else if (after) after();
     };
   }
 
-  function send(key, title, pct){
+  function send(key, title, pct, all){
     var c = cls(), name = (prof().name || "").trim();
     if (MY.indexOf(c) < 0 || !name) return;
-    var set = {}; set[key] = {pct:pct, title:title, at:Date.now()};
+    var set = {};
+    if (all) { Object.keys(all).forEach(function(k){ if (typeof all[k] === "number") set[k] = {pct:all[k], title:titleOf(k), at:Date.now()}; }); if (!Object.keys(set).length) return; }
+    else set[key] = {pct:pct, title:title, at:Date.now()};
     getDb().then(function(d){
-      return d.collection(COL).doc((c + "_" + name).replace(/[\/\s]+/g, "_")).set({name:name, cls:c, course:COURSE, ts:Date.now(), sets:set}, {merge:true});
+      return d.collection(COL).doc((c + "_" + name + "_" + COURSE).replace(/[\/\s]+/g, "_")).set({name:name, cls:c, course:COURSE, ts:Date.now(), sets:set}, {merge:true});
     }).catch(function(){});
   }
 
@@ -57,4 +61,16 @@
     } catch(e){}
     return out;
   };
+
+  /* عند الدخول: اسألي عن الفصل، ثم أرسلي كل الإنجازات السابقة المحفوظة على الجهاز */
+  function backfill(){
+    var b = document.getElementById("nmBox"); if (b) b.remove();
+    send(null, null, null, store.get("best", {}) || {});
+  }
+  setTimeout(function(){
+    try {
+      if (!cls()) askClass(backfill);
+      else if (MY.indexOf(cls()) >= 0) { if (!prof().name) askName(backfill); else backfill(); }
+    } catch(e){}
+  }, 1200);
 })();
