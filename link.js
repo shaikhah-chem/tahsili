@@ -1,8 +1,8 @@
-/* 🔗 ربط «تحدّي التحصيلي» برصيدي الذهبي — تُرسل نتائج طالبات أ. شيخه المطيري فقط */
+/* 🔗 ربط «تحدّي التحصيلي» برصيدي الذهبي — تُرسل نتائج طالبات أ. شيخه المطيري للنقاط، وعدد شهادات طالبات الفصول الأخرى للإحصائية */
 (function(){
   var MY = ["أول ج","أول د","أول هـ","ثاني ج","ثاني د"];   // فصول المعلمة
   var CFG = {apiKey:"AIzaSyBq067CBAa0tLJxNMf60nObygvnRTgYwlI",authDomain:"chem-lab-shaikha.firebaseapp.com",projectId:"chem-lab-shaikha",storageBucket:"chem-lab-shaikha.firebasestorage.app",messagingSenderId:"305599144472",appId:"1:305599144472:web:ae27c01b81b925c238d96d"};
-  var COL = "tahsili_results";
+  var COL = "tahsili_results", COL2 = "tahsili_others";
   var COURSE = /\/k21\//.test(location.pathname) ? "كيمياء 2-1" : /\/k22\//.test(location.pathname) ? "كيمياء 2-2" : /\/k3\//.test(location.pathname) ? "كيمياء 3" : "كيمياء 1";
   if (typeof results !== "function" || typeof store === "undefined") return;
 
@@ -31,12 +31,32 @@
     box.onclick = function(e){
       var b = e.target.closest("button[data-c]"); if (!b) return;
       setCls(b.getAttribute("data-c")); box.remove();
-      if (b.getAttribute("data-c") !== "other" && !prof().name) askName(after); else if (after) after();
+      if (!prof().name) askName(after); else if (after) after();
     };
+  }
+
+  /* شهادات التميّز بنفس قاعدة صفحة «إنجازاتي»: 90% فأكثر في اختبار فصل/وحدة/الشامل + بلوغ أعلى مستوى */
+  function certList(){
+    var b = store.get("best", {}) || {}, out = [];
+    Object.keys(b).forEach(function(k){
+      if ((k[0] === "u" || k === "full" || /^c\d+$/.test(k)) && b[k] >= 90)
+        out.push((typeof keyName === "function" && !/^c\d+$/.test(k) ? keyName(k) : (/^c\d+$/.test(k) ? "الفصل " + k.slice(1) : k)) + " (" + b[k] + "%)");
+    });
+    try { if (level(prof().xp).i === LEVELS.length - 1) out.push("بلوغ مستوى «بطلة التحصيلي»"); } catch(e){}
+    return out;
+  }
+  function sendOthers(){
+    var b = document.getElementById("nmBox"); if (b) b.remove();
+    var name = (prof().name || "").trim(); if (!name) return;
+    var list = certList();
+    getDb().then(function(d){
+      return d.collection(COL2).doc(("other_" + name + "_" + COURSE).replace(/[\/\s]+/g, "_")).set({name:name, course:COURSE, ts:Date.now(), certs:list.length, list:list.slice(0, 60)});
+    }).catch(function(){});
   }
 
   function send(key, title, pct, all){
     var c = cls(), name = (prof().name || "").trim();
+    if (c === "other") { if (name) sendOthers(); return; }
     if (MY.indexOf(c) < 0 || !name) return;
     var set = {};
     if (all) { Object.keys(all).forEach(function(k){ if (typeof all[k] === "number") set[k] = {pct:all[k], title:titleOf(k), at:Date.now()}; }); if (!Object.keys(set).length) return; }
@@ -55,7 +75,7 @@
       if (prevBest == null || pct > prevBest) {
         var done = function(){ send(key, title, pct); var b = document.getElementById("nmBox"); if (b) b.remove(); };
         if (!cls()) askClass(done);
-        else if (MY.indexOf(cls()) >= 0 && !prof().name) askName(done);
+        else if (!prof().name) askName(done);
         else send(key, title, pct);
       }
     } catch(e){}
@@ -70,7 +90,7 @@
   setTimeout(function(){
     try {
       if (!cls()) askClass(backfill);
-      else if (MY.indexOf(cls()) >= 0) { if (!prof().name) askName(backfill); else backfill(); }
+      else { if (!prof().name) askName(backfill); else backfill(); }
     } catch(e){}
   }, 1200);
 })();
