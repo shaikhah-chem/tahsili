@@ -82,10 +82,11 @@
     return out;
   };
 
-  /* عند الدخول: اسألي عن الفصل، ثم أرسلي كل الإنجازات السابقة المحفوظة على الجهاز */
+  /* عند الدخول: اسألي عن الفصل والاسم. طالبات المعلمة: لا تُرسَل الإنجازات السابقة (تُرصد يدوياً)، فقط الجديدة.
+     الفصول الأخرى: يُحدَّث عدد الشهادات للإحصائية. */
   function backfill(){
     var b = document.getElementById("nmBox"); if (b) b.remove();
-    send(null, null, null, store.get("best", {}) || {});
+    if (cls() === "other") sendOthers();
   }
   setTimeout(function(){
     try {
